@@ -83,5 +83,25 @@ header {
   display: flex;
   justify-content: center;
   align-items: center;
+  height: 20vh;
+}
+
+.watchlist {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   height: 60vh;
+}
+
+.watchlist h2 {
+  color: #787878;
+}
+
+.add-movies {
+  display: flex;
+  align-items: center;
+  color: white;
+  font-size: .875rem;
+  gap: 5px;
 }
