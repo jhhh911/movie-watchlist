@@ -119,7 +119,7 @@ header {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 20vh;
+  height: 50vh;
 }
 
 .movie-container {
@@ -156,8 +156,12 @@ header {
   align-items: center;
 }
 
+.movie-info-1 {
+  margin-bottom: .7em;
+}
+
 .movie-title {
-  margin: 0;
+  margin-right: .33em;
 }
 
 .movie-info-2 {

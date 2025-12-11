@@ -34,7 +34,7 @@ function renderSearchedMovies() {
           <div class="movie-text">
             <div class="movie-info-1">
               <h3 class="movie-title">${data.Title}</h3>
-              <div class="movie-rating">⭐ ${movieRating.Value}</div>
+              <div class="movie-rating">⭐ ${movieRating[0].Value}</div>
             </div>
             <div class="movie-info-2">
               <div class="movie-time">${data.Runtime}</div>
@@ -56,7 +56,7 @@ function renderSearchedMovies() {
         <div class="border-bottom"></div>
 `;
         document.getElementById("movie-input").innerHTML = html;
-        console.log(data.Ratings);
+        console.log(data.Runtime);
       });
   });
 }
