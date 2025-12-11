@@ -1,6 +1,7 @@
 const search = document.getElementById("search");
 const searchBtn = document.getElementById("search-btn");
-const placeholder = document.getElementById("placeholder")
+const placeholder = document.getElementById("placeholder");
+const movieInput = document.getElementById("movie-input");
 let movieArray = [];
 let idArray = [];
 
@@ -11,16 +12,20 @@ function fetchData() {
     .then(res => res.json())
     .then(data => {
       movieArray = data.Search;
-      movieArray.forEach(movie => {
-        idArray.push(movie.imdbID);
-      });
-      renderSearchedMovies();
+      if (movieArray) {
+        movieArray.forEach(movie => {
+          idArray.push(movie.imdbID);
+        });
+        renderSearchedMovies();
+      } else {
+        togglePlaceholder();
+        movieInput.innerHTML = `<p class='search-error'>Unable to find what you're 
+        looking for. Please try another search.</p>`;
+      }
     });
 }
 function renderSearchedMovies() {
-  if (placeholder.style.display === 'flex') {
-    placeholder.style.display = 'none';
-  }
+  togglePlaceholder();
   let html = "";
   idArray.forEach(id => {
     fetch(`https://www.omdbapi.com/?apikey=f7bb0b29&i=${id}`)
@@ -55,10 +60,15 @@ function renderSearchedMovies() {
         </section>
         <div class="border-bottom"></div>
 `;
-        document.getElementById("movie-input").innerHTML = html;
-        console.log(data.Runtime);
+        movieInput.innerHTML = html;
       });
   });
 }
 
 searchBtn.addEventListener("click", fetchData);
+
+function togglePlaceholder() {
+  if (placeholder.style.display === "flex") {
+    placeholder.style.display = "none";
+  }
+}

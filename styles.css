@@ -1,9 +1,3 @@
-/* General */
-/* * {
-  border: 1px solid yellow;
-} */
-
-
 body {
   margin: 0;
   background-color: #121212;
@@ -150,7 +144,8 @@ header {
 }
 
 .movie-info-1,
-.movie-info-2 {
+.movie-info-2,
+.search-error {
   color: white;
   display: flex;
   align-items: center;
