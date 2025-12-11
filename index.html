@@ -14,11 +14,13 @@
   </head>
   <body>
     <header>
-      <h1 class="title">Find your film</h1>
-      <h2 class="subtitle"><a href="watchlist.html">My Watchlist</a></h2>
+      <div class="header-text">
+        <h1 class="title">Find your film</h1>
+        <h2 class="subtitle"><a href="watchlist.html">My Watchlist</a></h2>
+      </div>
     </header>
-    <main>
-      <section class="search-bar">
+
+    <div class="search-bar">
         <img src="./img/Icon.png" alt="search" class="search-icon" />
         <input
           type="text"
@@ -28,12 +30,12 @@
           required
         />
         <button class="search-btn" id="search-btn">Search</button>
-      </section>
+      </div>
+
+    <main class="movie-container" id="movie-input">
       <section class="movie-placeholder" id="placeholder">
         <img src="./img/Group 199.png" alt="start exploring" />
       </section>
-
-      <section class="movie-container" id="movie-input"></section>
     </main>
 
     <script src="script.js"></script>
