@@ -116,7 +116,8 @@ header {
   height: 50vh;
 }
 
-.movie-container {
+.movie-container,
+.watchlist {
   display: flex;
   align-items: center;
   width: 90%;
@@ -172,6 +173,9 @@ header {
   justify-content: center;
   align-items: center;
   gap: .35em;
+  background-color: transparent;
+  color: inherit;
+  border: none;
 }
 
 .movie-info-3 {
@@ -181,14 +185,6 @@ header {
 }
 
 /* Watchlist */
-.watchlist {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  height: 60vh;
-}
-
 .watchlist h2 {
   color: #787878;
 }

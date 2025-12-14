@@ -2,8 +2,10 @@ const search = document.getElementById("search");
 const searchBtn = document.getElementById("search-btn");
 const placeholder = document.getElementById("placeholder");
 const movieInput = document.getElementById("movie-input");
+
 let movieArray = [];
 let idArray = [];
+export let watchlist = JSON.parse(localStorage.getItem("watchlist")) || []
 
 function fetchData() {
   movieArray = [];
@@ -11,6 +13,7 @@ function fetchData() {
   fetch(`https://www.omdbapi.com/?apikey=f7bb0b29&s=${search.value}`)
     .then(res => res.json())
     .then(data => {
+      togglePlaceholder();
       movieArray = data.Search;
       if (movieArray) {
         movieArray.forEach(movie => {
@@ -18,14 +21,12 @@ function fetchData() {
         });
         renderSearchedMovies();
       } else {
-        togglePlaceholder();
         movieInput.innerHTML = `<p class='search-error'>Unable to find what you're 
         looking for. Please try another search.</p>`;
       }
     });
 }
 function renderSearchedMovies() {
-  togglePlaceholder();
   let html = "";
   idArray.forEach(id => {
     fetch(`https://www.omdbapi.com/?apikey=f7bb0b29&i=${id}`)
@@ -44,14 +45,15 @@ function renderSearchedMovies() {
             <div class="movie-info-2">
               <div class="movie-time">${data.Runtime}</div>
               <div class="movie-genres">${data.Genre}</div>
-              <div class="add-to-watchlist">
+              <button class="add-to-watchlist" id='watchlist-btn'>
                 <img
                   src="./img/Icon (1).png"
                   alt="Add to watchlist button"
                   class="add-icon"
+                  data-add='${data.imdbID}'
                 />
-                <p>Watchlist</p>
-              </div>
+                <p data-add='${data.imdbID}'>Watchlist</p>
+              </button>
             </div>
             <div class="movie-info-3">
               <p>${data.Plot}</p>
@@ -60,15 +62,43 @@ function renderSearchedMovies() {
         </section>
         <div class="border-bottom"></div>
 `;
+
         movieInput.innerHTML = html;
       });
   });
 }
-
-searchBtn.addEventListener("click", fetchData);
+if (searchBtn) {
+  searchBtn.addEventListener("click", fetchData);
+}
 
 function togglePlaceholder() {
   if (placeholder.style.display === "flex") {
     placeholder.style.display = "none";
   }
 }
+
+// Event listeners
+document.addEventListener("click", e => {
+  if (e.target.dataset.add) {
+    addMovieToWatchList(e.target.dataset.add);
+    alert("Movie added to watchlist");
+  } else if (e.target.dataset.delete) {
+    deleteMovieFromWatchList(e.target.dataset.delete);
+  }
+});
+
+function addMovieToWatchList(movieId) {
+  fetch(`https://www.omdbapi.com/?apikey=f7bb0b29&i=${movieId}`)
+    .then(res => res.json())
+    .then(data => {
+        watchlist.push(data);
+        localStorage.setItem("watchlist", JSON.stringify(watchlist));
+    });
+    
+}
+
+
+
+
+  
+
