@@ -8,14 +8,6 @@ let movieArray = [];
 let idArray = [];
 let watchlist = JSON.parse(localStorage.getItem("watchlist")) || [];
 
-function changeButton() {
-  document.querySelectorAll(".add-to-watchlist").forEach(button => {
-    button.addEventListener("click", function () {
-      button.innerHTML = `<p>Added</p>`;
-    });
-  });
-}
-
 function fetchData() {
   movieArray = [];
   idArray = [];
@@ -54,14 +46,9 @@ function renderSearchedMovies() {
             <div class="movie-info-2">
               <div class="movie-time">${data.Runtime}</div>
               <div class="movie-genres">${data.Genre}</div>
-              <button class="add-to-watchlist">
-                <img
-                  src="./img/Icon (1).png"
-                  alt="Add to watchlist button"
-                  class="add-icon"
-                  data-add='${data.imdbID}'
-                />
-                <p data-add='${data.imdbID}'>Watchlist</p>
+              <button class="add-to-watchlist" data-add="${data.imdbID}">
+                <img src="./img/Icon (1).png" alt="Add to watchlist button" class="add-icon" />
+                <p>Watchlist</p>
               </button>
             </div>
             <div class="movie-info-3">
@@ -88,13 +75,13 @@ function togglePlaceholder() {
 
 // Event listeners
 document.addEventListener("click", e => {
-  if (e.target.dataset.add) {
-    changeButton();
-    addMovieToWatchList(e.target.dataset.add);
-    alert("Movie added to watchlist");
-  } else if (e.target.dataset.delete) {
+  const addButton = e.target.closest(".add-to-watchlist");
+  if (addButton) {
+    addButton.innerHTML = "<p>Added</p>";
+    addMovieToWatchList(addButton.dataset.add);
+  }
+  if (e.target.dataset.delete) {
     deleteMovieFromWatchList(e.target.dataset.delete);
-    alert("Movie removed from watchlist");
   }
 });
 
