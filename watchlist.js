@@ -1,3 +1,3 @@
-import { renderWatchList } from "./script.js";
+import { renderWatchlist } from "./script.js";
 
-renderWatchList();
+renderWatchlist();

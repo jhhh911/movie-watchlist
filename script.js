@@ -1,159 +1,175 @@
-const search = document.getElementById("search");
+// Variables
+const searchInput = document.getElementById("search");
 const searchBtn = document.getElementById("search-btn");
 const placeholder = document.getElementById("placeholder");
-const movieInput = document.getElementById("movie-input");
+const movieContainer = document.getElementById("movie-input");
 const watchlistEl = document.getElementById("watchlistEl");
 
-let movieArray = [];
-let idArray = [];
+const API_KEY = "f7bb0b29";
+
+let searchResults = [];
 let watchlist = JSON.parse(localStorage.getItem("watchlist")) || [];
 
-function fetchData() {
-  movieArray = [];
-  idArray = [];
-  fetch(`https://www.omdbapi.com/?apikey=f7bb0b29&s=${search.value}`)
-    .then(res => res.json())
-    .then(data => {
-      togglePlaceholder();
-      movieArray = data.Search;
-      if (movieArray) {
-        movieArray.forEach(movie => {
-          idArray.push(movie.imdbID);
-        });
-        renderSearchedMovies();
-      } else {
-        movieInput.innerHTML = `<p class='search-error'>Unable to find what you're 
-        looking for. Please try another search.</p>`;
-      }
-    });
+// Search
+
+async function fetchMovies(query) {
+  const res = await fetch(
+    `https://www.omdbapi.com/?apikey=${API_KEY}&s=${query}`
+  );
+  const data = await res.json();
+  return data.Search || [];
 }
-function renderSearchedMovies() {
-  let html = "";
-  idArray.forEach(id => {
-    fetch(`https://www.omdbapi.com/?apikey=f7bb0b29&i=${id}`)
-      .then(res => res.json())
-      .then(data => {
-        const movieRating = data.Ratings;
-        const isinWatchlist = watchlist.some(movie => movie.imdbID === data.imdbID)
-        html += `
-        <section class='item-container'>
-          <img src=${data.Poster} alt="${data.Title} movie poster" class="movie-img" />
+
+async function fetchMovieDetails(ids) {
+  const requests = ids.map(id =>
+    fetch(`https://www.omdbapi.com/?apikey=${API_KEY}&i=${id}`).then(res =>
+      res.json()
+    )
+  );
+  return Promise.all(requests);
+}
+
+async function handleSearch() {
+  placeholder?.classList.add("none");
+  movieContainer.innerHTML = "";
+
+  const movies = await fetchMovies(searchInput.value);
+
+  if (!movies.length) {
+    movieContainer.innerHTML = `
+    <p class="search-error">
+        Unable to find what you're looking for.
+      </p>
+    `;
+    return;
+  }
+
+  const ids = movies.map(movie => movie.imdbID);
+  searchResults = await fetchMovieDetails(ids);
+
+  renderSearchResults();
+}
+
+function renderSearchResults() {
+  movieContainer.innerHTML = searchResults
+    .map(movie => {
+      const inWatchlist = watchlist.some(
+        saved => saved.imdbID === movie.imdbID
+      );
+
+      const rating = movie.Ratings?.[0]?.Value || "N/A";
+
+      return `
+      <section class="item-container">
+          <img src="${movie.Poster}" class="movie-img" />
 
           <div class="movie-text">
             <div class="movie-info-1">
-              <h3 class="movie-title">${data.Title}</h3>
-              <div class="movie-rating">⭐ ${movieRating[0].Value}</div>
+              <h3>${movie.Title}</h3>
+              <div>⭐ ${rating}</div>
             </div>
+
             <div class="movie-info-2">
-              <div class="movie-time">${data.Runtime}</div>
-              <div class="movie-genres">${data.Genre}</div>
-              <button class="add-to-watchlist" data-add="${data.imdbID}">
-                <img src="./img/Icon (1).png" alt="Add to watchlist button" class="add-icon" />
-                <p>Watchlist</p>
+              <span>${movie.Runtime}</span>
+              <span>${movie.Genre}</span>
+
+              <button 
+                class="add-to-watchlist"
+                data-id="${movie.imdbID}"
+                ${inWatchlist ? "disabled" : ""}
+              >
+              <img src="./img/Icon (1).png" alt="Add to watchlist button" class="add-icon" />
+                ${inWatchlist ? "Added" : "Watchlist"}
               </button>
             </div>
-            <div class="movie-info-3">
-              <p>${data.Plot}</p>
-            </div>
+
+            <p class="movie-info-3">${movie.Plot}</p>
           </div>
         </section>
         <div class="border-bottom"></div>
-`;
-        document.querySelectorAll('.button').forEach(button => {
-          button.innerHTML = isinWatchlist ? `<p>Added</p>` : '<p>Watchlist</p>'
-        })
-        movieInput.innerHTML = html;
-      });
-  });
-}
-if (searchBtn) {
-  searchBtn.addEventListener("click", fetchData);
-}
-
-function togglePlaceholder() {
-  if (placeholder.style.display === "flex") {
-    placeholder.style.display = "none";
-  }
-}
-
-// Event listeners
-document.addEventListener("click", e => {
-  if (e.target.dataset.delete) {
-    deleteMovieFromWatchList(e.target.dataset.delete);
-  }
-
-  const addButton = e.target.closest(".add-to-watchlist");
-  if (addButton) {
-    addButton.innerHTML = `
-    <i class="fa-regular fa-circle-check"></i>
-    <p>Added</p>
     `;
-    addMovieToWatchList(addButton.dataset.add);
-    addButton.disabled = true;
+    })
+    .join("");
+}
+
+// Watchlist
+
+function addToWatchlist(id) {
+  const movie = searchResults.find(m => m.imdbID === id);
+  if (!movie) return;
+
+  if (!watchlist.some(m => m.imdbID === id)) {
+    watchlist.push(movie);
+    localStorage.setItem("watchlist", JSON.stringify(watchlist));
+    renderWatchlist()
+  }
+}
+
+function removeFromWatchlist(id) {
+  watchlist = watchlist.filter(movie => movie.imdbID !== id);
+  localStorage.setItem("watchlist", JSON.stringify(watchlist));
+  renderWatchlist()
+}
+
+export function renderWatchlist() {
+  if (!watchlistEl) return;
+
+  if (!watchlist.length) {
+    watchlistEl.innerHTML = `
+      <h2>Your watchlist is looking a little empty...</h2> 
+      <div class="add-movies"> 
+        <h3><a href='index.html'>Let's add some movies!</a></h3> 
+      </div>;
+    `;
+    return;
+  }
+
+  watchlistEl.innerHTML = watchlist
+    .map(movie => {
+      const rating = movie.Ratings?.[0]?.Value || 'N/A';
+
+      return `
+        <section class="item-container">
+          <img src="${movie.Poster}" class="movie-img" />
+
+          <div class="movie-text">
+            <div class="movie-info-1">
+              <h3>${movie.Title}</h3>
+              <div>⭐ ${rating}</div>
+            </div>
+
+            <div class="movie-info-2">
+              <span>${movie.Runtime}</span>
+              <span>${movie.Genre}</span>
+              <button data-delete="${movie.imdbID}" class="add-to-watchlist">
+              <img src="./img/Icon (2).png" alt="Remove from watchlist button" class="add-icon" data-delete='${movie.imdbID}' />
+                Remove
+              </button>
+            </div>
+
+            <p class="movie-info-3">${movie.Plot}</p>
+          </div>
+        </section>
+        <div class="border-bottom"></div>
+      `;
+    })
+    .join("");
+}
+
+// Events
+searchBtn?.addEventListener("click", handleSearch);
+
+document.addEventListener('click', e => {
+  const addBtn = e.target.closest('[data-id]');
+  const deleteBtn = e.target.closest('[data-delete]');
+
+  if (addBtn) {
+    addToWatchlist(addBtn.dataset.id);
+    addBtn.textContent = 'Added';
+    addBtn.disabled = true
+  }
+
+  if (deleteBtn) {
+    removeFromWatchlist(deleteBtn.dataset.delete)
   }
 });
-
-function addMovieToWatchList(movieId) {
-  fetch(`https://www.omdbapi.com/?apikey=f7bb0b29&i=${movieId}`)
-    .then(res => res.json())
-    .then(data => {
-      const exists = watchlist.some(movie => movie.imdbID === movieId);
-      if (!exists) {
-        watchlist.push(data);
-        localStorage.setItem("watchlist", JSON.stringify(watchlist));
-      }
-    });
-}
-
-function deleteMovieFromWatchList(movieId) {
-  const remove = watchlist.findIndex(movie => movie.imdbID === movieId);
-  watchlist.splice(remove, 1);
-  localStorage.setItem("watchlist", JSON.stringify(watchlist));
-  renderWatchList();
-}
-
-export function renderWatchList() {
-  if (watchlist.length === 0) {
-    watchlistEl.innerHTML = `<h2>Your watchlist is looking a little empty...</h2>
-        <div class="add-movies">
-          <img src="./img/Icon (1).png" alt="add" class="add-icon">
-        <h3><a href='index.html'>Let's add some movies!</a></h3>
-        </div>`;
-  } else {
-    let html = "";
-    watchlist.forEach(movie => {
-      const movieRating = movie.Ratings;
-      html += `
-        <section class='item-container'>
-          <img src=${movie.Poster} alt="${movie.Title} movie poster" class="movie-img" />
-
-          <div class="movie-text">
-            <div class="movie-info-1">
-              <h3 class="movie-title">${movie.Title}</h3>
-              <div class="movie-rating">⭐ ${movieRating[0].Value}</div>
-            </div>
-            <div class="movie-info-2">
-              <div class="movie-time">${movie.Runtime}</div>
-              <div class="movie-genres">${movie.Genre}</div>
-              <button class="add-to-watchlist">
-                <img
-                  src="./img/Icon (2).png"
-                  alt="Remove from watchlist button"
-                  class="add-icon"
-                  data-delete='${movie.imdbID}'
-                />
-                <p data-delete='${movie.imdbID}'>Remove</p>
-              </button>
-            </div>
-            <div class="movie-info-3">
-              <p>${movie.Plot}</p>
-            </div>
-          </div>
-        </section>
-        <div class="border-bottom"></div>
-`;
-    });
-
-    watchlistEl.innerHTML = html;
-  }
-}
