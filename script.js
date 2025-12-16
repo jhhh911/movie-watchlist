@@ -34,6 +34,7 @@ function renderSearchedMovies() {
       .then(res => res.json())
       .then(data => {
         const movieRating = data.Ratings;
+        const isinWatchlist = watchlist.some(movie => movie.imdbID === data.imdbID)
         html += `
         <section class='item-container'>
           <img src=${data.Poster} alt="${data.Title} movie poster" class="movie-img" />
@@ -58,7 +59,9 @@ function renderSearchedMovies() {
         </section>
         <div class="border-bottom"></div>
 `;
-
+        document.querySelectorAll('.button').forEach(button => {
+          button.innerHTML = isinWatchlist ? `<p>Added</p>` : '<p>Watchlist</p>'
+        })
         movieInput.innerHTML = html;
       });
   });
@@ -75,13 +78,18 @@ function togglePlaceholder() {
 
 // Event listeners
 document.addEventListener("click", e => {
-  const addButton = e.target.closest(".add-to-watchlist");
-  if (addButton) {
-    addButton.innerHTML = "<p>Added</p>";
-    addMovieToWatchList(addButton.dataset.add);
-  }
   if (e.target.dataset.delete) {
     deleteMovieFromWatchList(e.target.dataset.delete);
+  }
+
+  const addButton = e.target.closest(".add-to-watchlist");
+  if (addButton) {
+    addButton.innerHTML = `
+    <i class="fa-regular fa-circle-check"></i>
+    <p>Added</p>
+    `;
+    addMovieToWatchList(addButton.dataset.add);
+    addButton.disabled = true;
   }
 });
 
@@ -89,8 +97,11 @@ function addMovieToWatchList(movieId) {
   fetch(`https://www.omdbapi.com/?apikey=f7bb0b29&i=${movieId}`)
     .then(res => res.json())
     .then(data => {
-      watchlist.push(data);
-      localStorage.setItem("watchlist", JSON.stringify(watchlist));
+      const exists = watchlist.some(movie => movie.imdbID === movieId);
+      if (!exists) {
+        watchlist.push(data);
+        localStorage.setItem("watchlist", JSON.stringify(watchlist));
+      }
     });
 }
 
